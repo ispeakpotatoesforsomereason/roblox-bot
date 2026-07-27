@@ -32,6 +32,12 @@
     </div>
 
     <div class="card">
+        <h3>💸 DONATE TO ALL</h3>
+        <input type="number" id="donateAmount" value="10" placeholder="Amount">
+        <button onclick="sendCommand('donate_all', { amount: document.getElementById('donateAmount').value })">START DONATING TO EVERYONE</button>
+    </div>
+
+    <div class="card">
         <h3>🌐 SERVER HOP ALL BOTS</h3>
         <input type="text" id="placeId" placeholder="Place ID">
         <input type="text" id="jobId" placeholder="Job ID / Server ID (Optional)">
