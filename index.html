@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sigma Slicers C2</title>
+    <style>
+        body { background: #0f0f12; color: #fff; font-family: monospace; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .card { background: #1a1a24; border: 1px solid #2a2a3a; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        input, button { width: 100%; padding: 10px; margin-top: 8px; background: #0f0f12; border: 1px solid #3a3a4c; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        button { background: #4f46e5; font-weight: bold; cursor: pointer; border: none; }
+        button:hover { background: #4338ca; }
+    </style>
+</head>
+<body>
+    <h2>⚡ SIGMA SLICERS C2</h2>
+
+    <div class="card">
+        <label>AUTH (PASSWORD OR TEMP CODE)</label>
+        <input type="password" id="authKey" placeholder="Enter Admin Pass or Temp Code">
+    </div>
+
+    <div class="card">
+        <h3>🚨 RAID COMMAND</h3>
+        <input type="text" id="raidText" value="YOU GOT RAIDED BY SIGMA SLICERS 🔥">
+        <button onclick="sendCommand('raid', { text: document.getElementById('raidText').value })">TRIGGER RAID CHAT</button>
+    </div>
+
+    <div class="card">
+        <h3>📍 TELEPORT TO PLAYER</h3>
+        <input type="text" id="targetPlayer" placeholder="Target Username">
+        <button onclick="sendCommand('teleport', { target: document.getElementById('targetPlayer').value })">TELEPORT ALL BOTS</button>
+    </div>
+
+    <div class="card">
+        <h3>🌐 SERVER HOP ALL BOTS</h3>
+        <input type="text" id="placeId" placeholder="Place ID">
+        <input type="text" id="jobId" placeholder="Job ID / Server ID (Optional)">
+        <button onclick="sendCommand('join_server', { placeId: document.getElementById('placeId').value, jobId: document.getElementById('jobId').value })">TELEPORT ALL BOTS TO SERVER</button>
+    </div>
+
+    <div class="card">
+        <h3>🔑 GENERATE 10-MIN TEMP CODE</h3>
+        <button onclick="generateTempCode()">CREATE ONE-TIME ACCESS CODE</button>
+        <p id="tempCodeDisplay"></p>
+    </div>
+
+    <script>
+        async function sendCommand(action, payload) {
+            const auth = document.getElementById('authKey').value;
+            const res = await fetch('/api/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ auth, action, payload })
+            });
+            const data = await res.json();
+            alert(data.success ? `Command sent to ${data.deliveredBots} bots!` : `Error: ${data.error}`);
+        }
+
+        async function generateTempCode() {
+            const password = document.getElementById('authKey').value;
+            const res = await fetch('/api/create-temp-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+            if (data.code) {
+                document.getElementById('tempCodeDisplay').innerText = `TEMP CODE: ${data.code} (Expires in 10m, 1 use only)`;
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        }
+    </script>
+</body>
+</html>
