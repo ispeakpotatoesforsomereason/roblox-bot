@@ -1,104 +1,68 @@
-const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
+let selectedBots = new Set();
 
-const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+// fetch list of bots and render table
+async function refreshBots() {
+    const auth = document.getElementById('auth-input').value; // your password input field
+    if (!auth) return;
 
-app.use(express.json());
-app.use(express.static('public'));
+    const res = await fetch('/api/bots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auth })
+    });
 
-const ADMIN_PASSWORD = "67sucksandpotatoesarebetterthanhumans"; 
-const tempCodes = new Map();
+    const data = await res.json();
+    if (!data.success) return;
 
-app.post('/api/create-temp-code', (req, res) => {
-    const { password } = req.body;
-    if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
+    const tbody = document.getElementById('bot-table-body');
+    tbody.innerHTML = '';
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + (10 * 60 * 1000); // 10 minutes
-    tempCodes.set(code, expiresAt);
-
-    res.json({ code, expiresAt });
-});
-
-function verifyAuth(req, res, next) {
-    const { auth } = req.body;
-    if (!auth) return res.status(401).json({ error: "Missing authentication" });
-
-    if (auth === ADMIN_PASSWORD) return next();
-
-    if (tempCodes.has(auth)) {
-        const expiresAt = tempCodes.get(auth);
-        if (Date.now() > expiresAt) {
-            tempCodes.delete(auth);
-            return res.status(403).json({ error: "Temporary code expired" });
-        }
-        // do not delete here if you want to reuse the temp code until it expires!
-        return next();
-    }
-
-    return res.status(401).json({ error: "Invalid password or temp code" });
+    data.bots.forEach(bot => {
+        const isChecked = selectedBots.has(bot.username);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <input type="checkbox" value="${bot.username}" ${isChecked ? 'checked' : ''} onchange="toggleBot('${bot.username}', this.checked)">
+            </td>
+            <td>${bot.username}</td>
+            <td>${bot.time}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }
 
-const botSockets = new Set();
+function toggleBot(username, isChecked) {
+    if (isChecked) {
+        selectedBots.add(username);
+    } else {
+        selectedBots.delete(username);
+    }
+}
 
-wss.on('connection', (ws) => {
-    ws.isAlive = true;
-    botSockets.add(ws);
-    console.log(`[+] Bot connected. Total connected: ${botSockets.size}`);
-
-    ws.on('pong', () => {
-        ws.isAlive = true;
+function selectAllBots(checkAll) {
+    const checkboxes = document.querySelectorAll('#bot-table-body input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.checked = checkAll;
+        toggleBot(cb.value, checkAll);
     });
+}
 
-    ws.on('close', () => {
-        botSockets.delete(ws);
-        console.log(`[-] Bot disconnected. Total connected: ${botSockets.size}`);
+// send chat/raid command to selected bots (or all if none checked)
+async function sendAction(actionType, payloadData) {
+    const auth = document.getElementById('auth-input').value;
+    const targets = selectedBots.size > 0 ? Array.from(selectedBots) : null;
+
+    await fetch('/api/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            auth,
+            action: actionType,
+            payload: payloadData,
+            targets: targets
+        })
     });
+}
 
-    ws.on('error', () => {
-        botSockets.delete(ws);
-    });
-});
-
-// heartbeat ping every 30s to bypass render's 55s idle timeout
-const interval = setInterval(() => {
-    wss.clients.forEach((ws) => {
-        if (ws.isAlive === false) {
-            botSockets.delete(ws);
-            return ws.terminate();
-        }
-        ws.isAlive = false;
-        ws.ping();
-    });
-}, 30000);
-
-wss.on('close', () => {
-    clearInterval(interval);
-});
-
-app.post('/api/command', verifyAuth, (req, res) => {
-    const { action, payload } = req.body;
-    const message = JSON.stringify({ action, payload });
-    let delivered = 0;
-
-    botSockets.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            try {
-                client.send(message);
-                delivered++;
-            } catch (e) {
-                botSockets.delete(client);
-            }
-        } else {
-            botSockets.delete(client);
-        }
-    });
-
-    res.json({ success: true, deliveredBots: delivered });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Control panel active on port ${PORT}`));
+// auto refresh every 2s
+setInterval(refreshBots, 2000);
