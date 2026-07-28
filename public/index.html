@@ -9,6 +9,9 @@
         input, button { width: 100%; padding: 10px; margin-top: 8px; background: #0f0f12; border: 1px solid #3a3a4c; color: #fff; border-radius: 4px; box-sizing: border-box; }
         button { background: #4f46e5; font-weight: bold; cursor: pointer; border: none; }
         button:hover { background: #4338ca; }
+        .btn-sm { padding: 6px 10px; margin-top: 0; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 6px; border-bottom: 1px solid #2a2a3a; }
     </style>
 </head>
 <body>
@@ -16,7 +19,27 @@
 
     <div class="card">
         <label>AUTH (PASSWORD OR TEMP CODE)</label>
-        <input type="password" id="authKey" placeholder="Enter Admin Pass or Temp Code">
+        <input type="password" id="authKey" placeholder="Enter Admin Pass or Temp Code" oninput="refreshBots()">
+    </div>
+
+    <div class="card">
+        <h3>🤖 CONNECTED BOTS</h3>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn-sm" type="button" onclick="selectAllBots(true)" style="background: #2a2a3a;">SELECT ALL</button>
+            <button class="btn-sm" type="button" onclick="selectAllBots(false)" style="background: #2a2a3a;">DESELECT ALL</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>SEL</th>
+                    <th>USERNAME</th>
+                    <th>TIME ATTRIBUTE</th>
+                </tr>
+            </thead>
+            <tbody id="botTableBody">
+                <tr><td colspan="3" style="color: #888;">enter auth key to view bots...</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="card">
@@ -28,7 +51,7 @@
     <div class="card">
         <h3>📍 TELEPORT TO PLAYER</h3>
         <input type="text" id="targetPlayer" placeholder="Target Username">
-        <button onclick="sendCommand('teleport', { target: document.getElementById('targetPlayer').value })">TELEPORT ALL BOTS</button>
+        <button onclick="sendCommand('teleport', { target: document.getElementById('targetPlayer').value })">TELEPORT SELECTED BOTS</button>
     </div>
 
     <div class="card">
@@ -41,7 +64,7 @@
         <h3>🌐 SERVER HOP ALL BOTS</h3>
         <input type="text" id="placeId" placeholder="Place ID">
         <input type="text" id="jobId" placeholder="Job ID / Server ID (Optional)">
-        <button onclick="sendCommand('join_server', { placeId: document.getElementById('placeId').value, jobId: document.getElementById('jobId').value })">TELEPORT ALL BOTS TO SERVER</button>
+        <button onclick="sendCommand('join_server', { placeId: document.getElementById('placeId').value, jobId: document.getElementById('jobId').value })">TELEPORT SELECTED BOTS TO SERVER</button>
     </div>
 
     <div class="card">
@@ -51,13 +74,75 @@
     </div>
 
     <script>
+        const selectedBots = new Set();
+
+        async function refreshBots() {
+            const auth = document.getElementById('authKey').value;
+            if (!auth) {
+                document.getElementById('botTableBody').innerHTML = '<tr><td colspan="3" style="color: #888;">enter auth key to view bots...</td></tr>';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/bots', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auth })
+                });
+
+                const data = await res.json();
+                if (!data.success) return;
+
+                const tbody = document.getElementById('botTableBody');
+                if (data.bots.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="color: #888;">no bots currently connected</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.bots.forEach(bot => {
+                    const isChecked = selectedBots.has(bot.username);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <input type="checkbox" value="${bot.username}" ${isChecked ? 'checked' : ''} onchange="toggleBot('${bot.username}', this.checked)">
+                        </td>
+                        <td>${bot.username}</td>
+                        <td>${bot.time}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("error fetching bots:", e);
+            }
+        }
+
+        function toggleBot(username, isChecked) {
+            if (isChecked) {
+                selectedBots.add(username);
+            } else {
+                selectedBots.delete(username);
+            }
+        }
+
+        function selectAllBots(checkAll) {
+            const checkboxes = document.querySelectorAll('#botTableBody input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = checkAll;
+                toggleBot(cb.value, checkAll);
+            });
+        }
+
         async function sendCommand(action, payload) {
             const auth = document.getElementById('authKey').value;
+            const targets = selectedBots.size > 0 ? Array.from(selectedBots) : null;
+
             const res = await fetch('/api/command', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ auth, action, payload })
+                body: JSON.stringify({ auth, action, payload, targets })
             });
+
             const data = await res.json();
             alert(data.success ? `Command sent to ${data.deliveredBots} bots!` : `Error: ${data.error}`);
         }
@@ -69,6 +154,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password })
             });
+
             const data = await res.json();
             if (data.code) {
                 document.getElementById('tempCodeDisplay').innerText = `TEMP CODE: ${data.code} (Expires in 10m, 1 use only)`;
@@ -76,6 +162,8 @@
                 alert(`Error: ${data.error}`);
             }
         }
+
+        setInterval(refreshBots, 2000);
     </script>
 </body>
 </html>
