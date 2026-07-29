@@ -2,74 +2,295 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sigma Slicers C2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ SIGMA SLICERS C2</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f0f12; color: #fff; font-family: monospace; padding: 20px; max-width: 600px; margin: 0 auto; }
-        .card { background: #1a1a24; border: 1px solid #2a2a3a; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        input, button { width: 100%; padding: 10px; margin-top: 8px; background: #0f0f12; border: 1px solid #3a3a4c; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { background: #4f46e5; font-weight: bold; cursor: pointer; border: none; }
-        button:hover { background: #4338ca; }
-        .btn-sm { padding: 6px 10px; margin-top: 0; font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 6px; border-bottom: 1px solid #2a2a3a; }
+        :root {
+            --bg: #07090e;
+            --panel: #0d111a;
+            --panel-border: #1a202c;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --success: #10b981;
+            --danger: #ef4444;
+            --text: #f3f4f6;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 24px 16px;
+            max-width: 680px;
+            margin: 0 auto;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15), transparent 40%),
+                linear-gradient(to bottom, transparent, rgba(0,0,0,0.4));
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 16px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #04060a;
+            border: 1px solid var(--panel-border);
+            color: #fff;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px 14px;
+            margin-top: 10px;
+            background: var(--accent);
+            color: #fff;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-sm {
+            width: auto;
+            padding: 4px 8px;
+            margin-top: 0;
+            font-size: 10px;
+            background: #161b26;
+            color: #a5b4fc;
+            border: 1px solid var(--panel-border);
+        }
+
+        .btn-sm:hover {
+            background: #21293a;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+        .btn-success:hover {
+            background: #059669;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+        }
+
+        /* Bot List Table */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            background: #04060a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-align: left;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            background: rgba(99, 102, 241, 0.12);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .checkbox-custom {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--accent);
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        #tempCodeDisplay {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--success);
+            text-align: center;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
-    <h2>⚡ SIGMA SLICERS C2</h2>
+
+    <header>
+        <div class="logo">⚡ SIGMA SLICERS C2</div>
+        <div class="subtitle">BOTNET COMMAND & CONTROL SYSTEM</div>
+    </header>
 
     <div class="card">
-        <label>AUTH (PASSWORD OR TEMP CODE)</label>
-        <input type="password" id="authKey" placeholder="Enter Admin Pass or Temp Code" oninput="refreshBots()">
+        <label for="authKey">AUTHENTICATION</label>
+        <input type="password" id="authKey" placeholder="Enter Admin Password or Temp Code..." oninput="refreshBots()">
     </div>
 
     <div class="card">
-        <h3>🤖 CONNECTED BOTS</h3>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn-sm" type="button" onclick="selectAllBots(true)" style="background: #2a2a3a;">SELECT ALL</button>
-            <button class="btn-sm" type="button" onclick="selectAllBots(false)" style="background: #2a2a3a;">DESELECT ALL</button>
+        <div class="card-header">
+            <h3>🤖 ACTIVE BOTS</h3>
+            <div style="display: flex; gap: 6px;">
+                <button class="btn-sm" type="button" onclick="selectAllBots(true)">ALL</button>
+                <button class="btn-sm" type="button" onclick="selectAllBots(false)">NONE</button>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>SEL</th>
-                    <th>USERNAME</th>
-                    <th>TIME ATTRIBUTE</th>
-                </tr>
-            </thead>
-            <tbody id="botTableBody">
-                <tr><td colspan="3" style="color: #888;">enter auth key to view bots...</td></tr>
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 32px;">SEL</th>
+                        <th>USERNAME</th>
+                        <th style="text-align: right;">TIME STAT</th>
+                    </tr>
+                </thead>
+                <tbody id="botTableBody">
+                    <tr><td colspan="3" style="color: var(--muted); text-align: center;">enter auth key to link dashboard...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card">
-        <h3>🚨 RAID COMMAND</h3>
-        <input type="text" id="raidText" value="YOU GOT RAIDED BY SIGMA SLICERS 🔥">
-        <button onclick="sendCommand('raid', { text: document.getElementById('raidText').value })">TRIGGER RAID CHAT</button>
+        <h3>🚨 RAID CHAT COMMAND</h3>
+        <input type="text" id="raidText" value="YOU GOT RAIDED BY SIGMA SLICERS 🔥" style="margin-top: 10px;">
+        <button onclick="sendCommand('raid', { text: document.getElementById('raidText').value })">DISPATCH RAID MESSAGE</button>
     </div>
 
     <div class="card">
         <h3>📍 TELEPORT TO PLAYER</h3>
-        <input type="text" id="targetPlayer" placeholder="Target Username">
-        <button onclick="sendCommand('teleport', { target: document.getElementById('targetPlayer').value })">TELEPORT SELECTED BOTS</button>
+        <input type="text" id="targetPlayer" placeholder="Target Username..." style="margin-top: 10px;">
+        <button onclick="sendCommand('teleport', { target: document.getElementById('targetPlayer').value })">TELEPORT BOTS</button>
     </div>
 
     <div class="card">
-        <h3>💸 DONATE TO ALL</h3>
-        <input type="number" id="donateAmount" value="10" placeholder="Amount">
-        <button onclick="sendCommand('donate_all', { amount: document.getElementById('donateAmount').value })">START DONATING TO EVERYONE</button>
+        <h3>💸 DONATE ALL BOTS</h3>
+        <input type="number" id="donateAmount" value="10" placeholder="Amount..." style="margin-top: 10px;">
+        <button onclick="sendCommand('donate_all', { amount: document.getElementById('donateAmount').value })">START DONATING</button>
     </div>
 
     <div class="card">
-        <h3>🌐 SERVER HOP ALL BOTS</h3>
-        <input type="text" id="placeId" placeholder="Place ID">
-        <input type="text" id="jobId" placeholder="Job ID / Server ID (Optional)">
-        <button onclick="sendCommand('join_server', { placeId: document.getElementById('placeId').value, jobId: document.getElementById('jobId').value })">TELEPORT SELECTED BOTS TO SERVER</button>
+        <h3>🌐 SERVER HOP</h3>
+        <div class="input-group" style="margin-top: 10px;">
+            <input type="text" id="placeId" placeholder="Place ID">
+            <input type="text" id="jobId" placeholder="Job ID (Optional)">
+        </div>
+        <button onclick="sendCommand('join_server', { placeId: document.getElementById('placeId').value, jobId: document.getElementById('jobId').value })">TELEPORT TO SERVER</button>
     </div>
 
     <div class="card">
-        <h3>🔑 GENERATE 10-MIN TEMP CODE</h3>
-        <button onclick="generateTempCode()">CREATE ONE-TIME ACCESS CODE</button>
+        <h3>🔑 GENERATE TEMP ACCESS CODE</h3>
+        <button class="btn-success" onclick="generateTempCode()">CREATE 10-MIN CODE</button>
         <p id="tempCodeDisplay"></p>
     </div>
 
@@ -79,7 +300,7 @@
         async function refreshBots() {
             const auth = document.getElementById('authKey').value;
             if (!auth) {
-                document.getElementById('botTableBody').innerHTML = '<tr><td colspan="3" style="color: #888;">enter auth key to view bots...</td></tr>';
+                document.getElementById('botTableBody').innerHTML = '<tr><td colspan="3" style="color: var(--muted); text-align: center;">enter auth key to link dashboard...</td></tr>';
                 return;
             }
 
@@ -95,7 +316,7 @@
 
                 const tbody = document.getElementById('botTableBody');
                 if (data.bots.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="color: #888;">no bots currently connected</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="color: var(--muted); text-align: center;">no bots connected</td></tr>';
                     return;
                 }
 
@@ -105,10 +326,10 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>
-                            <input type="checkbox" value="${bot.username}" ${isChecked ? 'checked' : ''} onchange="toggleBot('${bot.username}', this.checked)">
+                            <input type="checkbox" class="checkbox-custom" value="${bot.username}" ${isChecked ? 'checked' : ''} onchange="toggleBot('${bot.username}', this.checked)">
                         </td>
-                        <td>${bot.username}</td>
-                        <td>${bot.time}</td>
+                        <td><strong>${bot.username}</strong></td>
+                        <td style="text-align: right;"><span class="badge">${bot.time}s</span></td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -144,7 +365,7 @@
             });
 
             const data = await res.json();
-            alert(data.success ? `Command sent to ${data.deliveredBots} bots!` : `Error: ${data.error}`);
+            alert(data.success ? `Command delivered to ${data.deliveredBots} bots` : `Error: ${data.error}`);
         }
 
         async function generateTempCode() {
@@ -157,7 +378,7 @@
 
             const data = await res.json();
             if (data.code) {
-                document.getElementById('tempCodeDisplay').innerText = `TEMP CODE: ${data.code} (Expires in 10m, 1 use only)`;
+                document.getElementById('tempCodeDisplay').innerText = `TEMP CODE: ${data.code} (Expires in 10m)`;
             } else {
                 alert(`Error: ${data.error}`);
             }
